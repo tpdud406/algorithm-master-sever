@@ -10,7 +10,7 @@ exports.login = async (req, res, next) => {
       await User.create({ name, email });
     }
 
-    res.send("success");
+    res.json({ user });
   } catch (err) {
     next(err);
   }
