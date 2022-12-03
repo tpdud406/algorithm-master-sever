@@ -12,22 +12,36 @@ const vm = new VM({
 module.exports = {
   getSubmitResult: async (req, res, next) => {
     const { user_id } = req.params;
-    const resolvedProblems = [];
+    const submitedProblems = [];
 
     try {
       const user = await User.findById(user_id).lean();
 
       for (const problem of user.problems) {
+        const { problemId, testResults } = problem;
         const { title, averageRuntimes } = await Problem.findById(
-          problem.problemId
+          problemId
         ).lean();
+        let sumRuntimes = 0;
 
-        resolvedProblems.push({ title, averageRuntimes });
+        for (const testResult of testResults) {
+          if (!testResult.passed) {
+            continue;
+          }
+
+          sumRuntimes += testResult.runtime;
+        }
+
+        submitedProblems.push({
+          problemId,
+          title,
+          averageRuntimes,
+          userAverages: sumRuntimes / testResults.length,
+        });
       }
 
-      res.status(200).json({ user, resolvedProblems });
+      res.status(200).json({ submitedProblems });
     } catch (err) {
-      console.log(err);
       next(err);
     }
   },
