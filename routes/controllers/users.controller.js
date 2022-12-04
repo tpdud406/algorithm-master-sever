@@ -1,6 +1,6 @@
-const Problem = require("../../models/Problem");
 const { VM } = require("vm2");
 const { hrtime } = require("node:process");
+const Problem = require("../../models/Problem");
 const User = require("../../models/User");
 
 const vm = new VM({
@@ -10,6 +10,41 @@ const vm = new VM({
 });
 
 module.exports = {
+  getSubmitResult: async (req, res, next) => {
+    const { user_id } = req.params;
+    const submitedProblems = [];
+
+    try {
+      const user = await User.findById(user_id).lean();
+
+      for (const problem of user.problems) {
+        const { problemId, testResults } = problem;
+        const { title, averageRuntimes } = await Problem.findById(
+          problemId
+        ).lean();
+        let sumRuntimes = 0;
+
+        for (const testResult of testResults) {
+          if (!testResult.passed) {
+            continue;
+          }
+
+          sumRuntimes += testResult.runtime;
+        }
+
+        submitedProblems.push({
+          problemId,
+          title,
+          averageRuntimes,
+          userAverages: sumRuntimes / testResults.length,
+        });
+      }
+
+      res.status(200).json({ submitedProblems });
+    } catch (err) {
+      next(err);
+    }
+  },
   getProblems: async (req, res, next) => {
     try {
       const problems = await Problem.find({}).lean();
