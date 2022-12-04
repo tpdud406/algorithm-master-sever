@@ -68,11 +68,10 @@ module.exports = {
     const { solutionCode } = req.body;
     const solutionResults = [];
     let runtimeSum = 0;
+    let isAllPassed = true;
 
     if (!solutionCode) {
-      return res
-        .status(200)
-        .json({ message: "Please write a solution function." });
+      return res.status(200).json({ message: "solution 함수를 채워주세요." });
     }
     try {
       const problem = await Problem.findById(problem_id).lean();
@@ -92,12 +91,19 @@ module.exports = {
         });
       }
 
-      await Problem.findOneAndUpdate(
-        {
-          _id: problem_id,
-        },
-        { $push: { averageRuntimes: runtimeSum / solutionResults.length } }
-      );
+      for (const solutionResult of solutionResults) {
+        if (!solutionResult.passed) {
+          isAllPassed = false;
+        }
+      }
+
+      isAllPassed &&
+        (await Problem.findOneAndUpdate(
+          {
+            _id: problem_id,
+          },
+          { $push: { averageRuntimes: runtimeSum / solutionResults.length } }
+        ));
 
       await User.findOneAndUpdate(
         { _id: user_id },
