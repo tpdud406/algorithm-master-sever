@@ -1,6 +1,9 @@
 const mongoose = require("mongoose");
 
 const ProblemSchema = new mongoose.Schema({
+  author: {
+    type: mongoose.Schema.Types.ObjectId,
+  },
   title: {
     type: String,
     required: true,
