@@ -53,6 +53,46 @@ module.exports = {
       next(err);
     }
   },
+  createProblem: async (req, res, next) => {
+    const { user_id } = req.params;
+    const { inputs } = req.body;
+    const {
+      title,
+      description,
+      testDescription,
+      testInput,
+      tesOutput,
+      testDescription1,
+      testInput1,
+      tesOutput1,
+    } = inputs;
+    console.log(inputs);
+
+    try {
+      await Problem.create({
+        author: user_id,
+        title: title,
+        description: description,
+        tests: [
+          {
+            description: testDescription,
+            input: testInput,
+            output: tesOutput,
+          },
+          {
+            description: testDescription1,
+            input: testInput1,
+            output: tesOutput1,
+          },
+        ],
+        averageRuntimes: [],
+      });
+
+      res.sendStatus(201);
+    } catch (err) {
+      next(err);
+    }
+  },
   getProblem: async (req, res, next) => {
     const { problem_id } = req.params;
 
