@@ -16,6 +16,11 @@ const usersRouter = require("./routes/users");
 const app = express();
 db();
 
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Headers", "*");
+  next();
+});
+
 app.use(cors(corsOptions));
 app.use(logger("dev"));
 app.use(express.json());
