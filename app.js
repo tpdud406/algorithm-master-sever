@@ -5,14 +5,6 @@ const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const cors = require("cors");
 const db = require("./config/connectDB");
-const corsOptions = {
-  credentials: true,
-};
-
-app.use((req, res, next) => {
-  res.writeHead(200, { "Access-Control-Allow-Origin": "*" });
-  next();
-});
 
 const authRouter = require("./routes/auth");
 const usersRouter = require("./routes/users");
@@ -20,7 +12,7 @@ const usersRouter = require("./routes/users");
 const app = express();
 db();
 
-app.use(cors(corsOptions));
+app.use(cors());
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
