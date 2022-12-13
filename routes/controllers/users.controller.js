@@ -23,9 +23,11 @@ module.exports = {
           problemId
         ).lean();
         let sumRuntimes = 0;
+        let isPass = true;
 
         for (const testResult of testResults) {
           if (!testResult.passed) {
+            isPass = false;
             continue;
           }
 
@@ -37,6 +39,7 @@ module.exports = {
           title,
           averageRuntimes,
           userAverages: sumRuntimes / testResults.length,
+          isPass,
         });
       }
 
@@ -103,7 +106,7 @@ module.exports = {
       next(err);
     }
   },
-  playTest: async (req, res, next) => {
+  runSolution: async (req, res, next) => {
     const { user_id, problem_id } = req.params;
     const { solutionCode } = req.body;
     const solutionResults = [];
@@ -121,7 +124,8 @@ module.exports = {
         const start = hrtime.bigint();
         const solutionResult = vm.run(solutionCode + test.input);
         const end = hrtime.bigint();
-        const runtime = Number(end - start) / 1000000;
+        const runtime =
+          Math.round((Number(end - start) / 1000000) * 10000) / 10000;
         runtimeSum += runtime;
 
         solutionResults.push({
@@ -136,7 +140,7 @@ module.exports = {
           isAllPassed = false;
         }
       }
-
+      console.log("isAllPassed", isAllPassed);
       isAllPassed &&
         (await Problem.findOneAndUpdate(
           {
