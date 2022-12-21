@@ -1,6 +1,9 @@
 # Node Modules
 /node_modules
 
+# testing
+/coverage
+
 # Environment Variable
 .env
 
