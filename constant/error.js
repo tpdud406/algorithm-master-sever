@@ -1,7 +1,7 @@
 const ERROR = {
   INTERNAL_SERVER_ERROR: "Internal server error",
-  INVALID_TOKEN: "Invalid Token",
-  NOT_FOUND: "Not Found",
+  USER_NOT_FOUND: "Please login",
+  NO_DATA: "No data found",
   UNAUTHORIZED_USER: "You are not authorized",
 };
 

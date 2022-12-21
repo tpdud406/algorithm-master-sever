@@ -14,7 +14,6 @@ const UserSchema = new mongoose.Schema({
       problemId: mongoose.Schema.Types.ObjectId,
       testResults: [
         {
-          testId: mongoose.Schema.Types.ObjectId,
           passed: Boolean,
           runtime: Number,
         },

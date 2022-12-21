@@ -2,6 +2,8 @@ const { VM } = require("vm2");
 const { hrtime } = require("node:process");
 const Problem = require("../../models/Problem");
 const User = require("../../models/User");
+const createError = require("http-errors");
+const ERROR = require("../../constant/error");
 
 const vm = new VM({
   timeout: 1000,
@@ -16,6 +18,10 @@ module.exports = {
 
     try {
       const user = await User.findById(user_id).lean();
+
+      if (!user) {
+        next(createError(403, ERROR.USER_NOT_FOUND));
+      }
 
       for (const problem of user.problems) {
         const { problemId, testResults } = problem;
@@ -53,7 +59,7 @@ module.exports = {
       const problems = await Problem.find({}).lean();
       res.status(200).json(problems);
     } catch (err) {
-      next(err);
+      next(createError(500, ERROR.INTERNAL_SERVER_ERROR));
     }
   },
   createProblem: async (req, res, next) => {
@@ -69,7 +75,6 @@ module.exports = {
       testInput1,
       tesOutput1,
     } = inputs;
-    console.log(inputs);
 
     try {
       await Problem.create({
@@ -101,6 +106,11 @@ module.exports = {
 
     try {
       const problem = await Problem.findById(problem_id).lean();
+
+      if (!problem) {
+        next(createError(ERROR.NO_DATA));
+      }
+
       res.status(200).json(problem);
     } catch (err) {
       next(err);
@@ -116,6 +126,7 @@ module.exports = {
     if (!solutionCode) {
       return res.status(200).json({ message: "solution 함수를 채워주세요." });
     }
+
     try {
       const problem = await Problem.findById(problem_id).lean();
       const { tests } = problem;
@@ -129,7 +140,6 @@ module.exports = {
         runtimeSum += runtime;
 
         solutionResults.push({
-          testId: test._id,
           passed: solutionResult === test.output,
           runtime,
         });
@@ -140,13 +150,19 @@ module.exports = {
           isAllPassed = false;
         }
       }
-      console.log("isAllPassed", isAllPassed);
+
       isAllPassed &&
         (await Problem.findOneAndUpdate(
           {
             _id: problem_id,
           },
-          { $push: { averageRuntimes: runtimeSum / solutionResults.length } }
+          {
+            $push: {
+              averageRuntimes:
+                Math.round((runtimeSum / solutionResults.length) * 10000) /
+                10000,
+            },
+          }
         ));
 
       await User.findOneAndUpdate(
@@ -160,7 +176,6 @@ module.exports = {
 
       res.status(200).json(solutionResults);
     } catch (err) {
-      console.error(err);
       next(err);
     }
   },
